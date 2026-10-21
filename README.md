@@ -28,7 +28,7 @@ ASRock's app also accepts USB ID `1a2c:4c86`. This project doesn't support that 
 ## Install
 
 ```bash
-git clone <this repo> && cd asrock-challenger-display
+git clone https://github.com/infopointer/asrock-challenger-display.git && cd asrock-challenger-display
 sudo ./install.sh
 ```
 
@@ -116,3 +116,7 @@ The udev rule makes the display's device nodes readable and writable by every lo
 ## Disclaimer
 
 Not affiliated with or endorsed by ASRock. I worked out the protocol by static analysis of ASRock's freely downloadable Windows driver, for interoperability. No ASRock code or files are included in this repository. Use at your own risk.
+
+## License
+
+Apache License 2.0, see [LICENSE](LICENSE).
