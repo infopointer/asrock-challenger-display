@@ -1,0 +1,31 @@
+[Unit]
+Description=ASRock Challenger 360 Digital pump display (CPU temp/clock)
+Documentation=file:///opt/asrock-challenger/protocol.md
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 -u /opt/asrock-challenger/challenger_display.py
+Restart=always
+RestartSec=5
+
+# Runs unprivileged; the udev rule makes the display's hidraw node 0666.
+DynamicUser=yes
+DevicePolicy=closed
+DeviceAllow=char-hidraw rw
+CapabilityBoundingSet=
+PrivateNetwork=yes
+RestrictAddressFamilies=AF_UNIX
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+LockPersonality=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,4 @@
+# ASRock Challenger Digital AIO pump display (USB 26ce:0a13).
+# Lets the unprivileged display service (systemd DynamicUser) open the hidraw node.
+SUBSYSTEM=="usb", ATTR{idVendor}=="26ce", ATTR{idProduct}=="0a13", MODE="0666", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="26ce", ATTRS{idProduct}=="0a13", MODE="0666", TAG+="uaccess"
