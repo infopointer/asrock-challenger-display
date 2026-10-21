@@ -27,7 +27,10 @@ ASRock's app also accepts USB ID `1a2c:4c86`. This project doesn't support that 
 
 ## Install
 
+Ubuntu Desktop doesn't include git, so install it first; Server already has it. Without git, use **Code → Download ZIP** on GitHub, unzip it, and run `sudo ./install.sh` in that folder.
+
 ```bash
+sudo apt install git
 git clone https://github.com/infopointer/asrock-challenger-display.git && cd asrock-challenger-display
 sudo ./install.sh
 ```
