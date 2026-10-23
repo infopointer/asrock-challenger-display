@@ -15,8 +15,6 @@ install -D -m 0644 "$REPO/sysusers/$SYSUSERS" "/etc/sysusers.d/$SYSUSERS"
 systemd-sysusers "/etc/sysusers.d/$SYSUSERS"
 
 # udev rule: give that group the display's hidraw nodes, then apply it to the plugged-in display.
-# Replay "add", not "change": udev's default permission rules only run on add, and they put the
-# raw USB node back to 0664 where an older version of this rule had made it 0666.
 install -m 0644 "$REPO/udev/$RULE" /etc/udev/rules.d/
 udevadm control --reload
 for d in /sys/bus/usb/devices/*; do
