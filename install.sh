@@ -8,12 +8,23 @@ REPO=$(dirname "$(readlink -f "$0")")
 PREFIX=/opt/asrock-challenger
 UNIT=asrock-challenger-display.service
 RULE=99-asrock-challenger-aio.rules
+SYSUSERS=asrock-challenger.conf
 
-# udev rule: make the display's hidraw node accessible, then apply it to the plugged-in device.
+# Group first: udev ignores GROUP= for a group that doesn't exist yet.
+install -D -m 0644 "$REPO/sysusers/$SYSUSERS" "/etc/sysusers.d/$SYSUSERS"
+systemd-sysusers "/etc/sysusers.d/$SYSUSERS"
+
+# udev rule: give that group the display's hidraw nodes, then apply it to the plugged-in display.
+# Replay "add", not "change": udev's default permission rules only run on add, and they put the
+# raw USB node back to 0664 where an older version of this rule had made it 0666.
 install -m 0644 "$REPO/udev/$RULE" /etc/udev/rules.d/
 udevadm control --reload
-udevadm trigger --action=change --attr-match=idVendor=26ce --attr-match=idProduct=0a13
-udevadm trigger --action=change --subsystem-match=hidraw
+for d in /sys/bus/usb/devices/*; do
+    [ -f "$d/idVendor" ] || continue
+    if [ "$(cat "$d/idVendor"):$(cat "$d/idProduct")" = "26ce:0a13" ]; then
+        udevadm trigger --action=add --parent-match="$d"
+    fi
+done
 udevadm settle
 
 install -d -m 0755 "$PREFIX"

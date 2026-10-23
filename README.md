@@ -35,7 +35,8 @@ git clone https://github.com/infopointer/asrock-challenger-display.git && cd asr
 sudo ./install.sh
 ```
 
-The installer puts files in four places:
+The installer sets up:
+- An `asrock-challenger` system group, declared in `/etc/sysusers.d/`.
 - The udev rule in `/etc/udev/rules.d/`, applied to the plugged-in device straight away.
 - The scripts in `/opt/asrock-challenger/`.
 - The unit in `/etc/systemd/system/`.
@@ -50,7 +51,7 @@ systemctl status asrock-challenger-display
 journalctl -u asrock-challenger-display -f   # logs the values sent once a minute
 ```
 
-The service runs as an unprivileged dynamic user with no network access. It finds the display by USB ID and HID descriptor, so the `hidrawN` number doesn't matter. It also reconnects by itself after an unplug, USB reset or suspend.
+The service runs as an unprivileged dynamic user in the `asrock-challenger` group, with no network access. It finds the display by USB ID and HID descriptor, so the `hidrawN` number doesn't matter. It also reconnects by itself after an unplug, USB reset or suspend.
 
 ## Options
 
@@ -74,11 +75,11 @@ ExecStart=/usr/bin/python3 -u /opt/asrock-challenger/challenger_display.py --fah
 
 ## Testing without the service
 
-`tools/challenger_send.py` sends a single frame of fixed values. Stop the service first so the two don't fight over the display:
+`tools/challenger_send.py` sends a single frame of fixed values. Stop the service first so the two don't fight over the display. Opening the display needs root or membership in the `asrock-challenger` group:
 
 ```bash
 sudo systemctl stop asrock-challenger-display
-python3 tools/challenger_send.py --cpu-temp 42 --mhz 4500 --page temp
+sudo python3 tools/challenger_send.py --cpu-temp 42 --mhz 4500 --page temp
 python3 tools/challenger_send.py --dry-run --cpu-temp 71.5   # print the packets only
 sudo systemctl start asrock-challenger-display
 ```
@@ -104,7 +105,7 @@ sudo ./uninstall.sh
 | symptom | check |
 |---|---|
 | display dark, log says `display not found` | `lsusb \| grep 26ce`. Is the cooler's USB header connected? |
-| `cannot open /dev/hidrawN: Permission denied` | `ls -l /dev/hidraw*`. The node should be `crw-rw-rw-`. Re-run `sudo ./install.sh` |
+| `cannot open /dev/hidrawN: Permission denied` | `ls -l /dev/hidrawN`. The node should be `crw-rw---- root asrock-challenger`. Re-run `sudo ./install.sh` |
 | temperature shows 0 | `sensors` / `ls /sys/class/hwmon/*/name`. Needs `k10temp` or `coretemp` |
 | clock jumps around | raise `--mhz-window` |
 
@@ -114,7 +115,9 @@ See [protocol.md](protocol.md) for the full packet layout. In short: every secon
 
 The service sends **only** the packets ASRock's app sends during normal use. The display's controller also accepts firmware-update commands, and nothing here touches them.
 
-The udev rule makes the display's device nodes readable and writable by every local user (`MODE="0666"`), so the service can run unprivileged.
+Access to the display is limited to root and the `asrock-challenger` group. The udev rule gives that group the display's hidraw nodes (`MODE="0660"`, no `uaccess` tag), and the service joins it with `SupplementaryGroups=`. Logged-in users and other programs can't talk to the controller, and the raw USB node keeps the system default.
+
+Versions before this change made the nodes writable by every local user (`MODE="0666"`). Re-running `sudo ./install.sh` replaces that rule and resets the plugged-in display's nodes. Reboot once afterwards to drop the old `uaccess` tag, which udev otherwise remembers for the device.
 
 ## Disclaimer
 

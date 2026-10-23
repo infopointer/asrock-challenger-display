@@ -8,8 +8,9 @@ ExecStart=/usr/bin/python3 -u /opt/asrock-challenger/challenger_display.py
 Restart=always
 RestartSec=5
 
-# Runs unprivileged; the udev rule makes the display's hidraw node 0666.
+# Runs unprivileged; the udev rule gives this group access to the display's hidraw node.
 DynamicUser=yes
+SupplementaryGroups=asrock-challenger
 DevicePolicy=closed
 DeviceAllow=char-hidraw rw
 CapabilityBoundingSet=
